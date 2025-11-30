@@ -1,0 +1,33 @@
+competence,skill,label,prerequis,materiel,liens
+C2	Analyser les besoins de la production,SF3: Formaliser intentions.," Focus : Configuration Projet.Choix du workflow (Offline/Online, Proxy).",Réaliser une Chromakey ,Régie vidéo complète ,Anglais
+C2	Analyser les besoins de la production,SF4: Proposer solutions.,"Focus : Configuration Projet.Choix du workflow (Offline/Online, Proxy).",Réaliser une LumaKey ,Caméra de reportage ,Physique
+C3	Sélectionner les médias,SF5: Analyser/proposer.,"Focus : Dérushage Intelligent.Organisation des chutiers, métadonnées, tri sélectif.",Utilisation MUX/DEMUX,Chaine caméra complète ,Tes
+C3	Sélectionner les médias,SF6: Répertorier médias.,"Focus : Dérushage Intelligent.Organisation des chutiers, métadonnées, tri sélectif.",Branchement Son,Documentation technique ,EEJ 
+C5	Gérer les dataflow,"SF10: Rendre compatibles.
+","Focus : Gestion des Données.Transcodage, gestion des proxies, gestion des chemins de stockage.",Utilisation du Patch ,Console lumière DMX DOT2,CAA 
+C5	Gérer les dataflow,SF11: Posséder médias.,"Focus : Gestion des Données.Transcodage, gestion des proxies, gestion des chemins de stockage.",Utilisation de la caméra ,Régie mobile complète,
+C5	Gérer les dataflow,SF12: Préparer diffusion.,"Focus : Gestion des Données.Transcodage, gestion des proxies, gestion des chemins de stockage.",Notions de focale,Grill lumière ,
+C5	Gérer les dataflow,SF13: Qualité.,"Focus : Gestion des Données.Transcodage, gestion des proxies, gestion des chemins de stockage.",Notions de profondeur de champs ,,
+C5	Gérer les dataflow,SF14: Traçabilité.,"Focus : Gestion des Données.Transcodage, gestion des proxies, gestion des chemins de stockage.",,,
+C6	Gérer le médiaflow,Gérer le médiaflow,Focus : Pipeline.Préservation des espaces colorimétriques et des cadences d'images lors des transferts.,,,
+C7	Assurer la mise en réseau,SF 17: Relier postes.,Focus : Connectivité.Connexion de la station au stockage partagé (NAS/SAN/Cloud).,,,
+C8	Assurer la mise en œuvre du poste,SF18: Rendre opérationnelles composantes.,"Focus : Setup Station.Configuration des préférences logiciel (Cache, I/O vidéo, Auto-save).",,,
+C8	Assurer la mise en œuvre du poste,SF19: Rendre opérationnel montage.,"Focus : Setup Station.Configuration des préférences logiciel (Cache, I/O vidéo, Auto-save).",,,
+C9	Organiser l’ergonomie,SF20: Adapter poste.,Focus : Interface.Personnalisation des raccourcis clavier et de l'espace de travail.,,,
+C10	Assurer la continuité/qualité de service,SF21: Assurer fluidité/compatibilité.,"Focus : Dépannage.Gestion des ""Media Offline"", relink, calculs de rendus.",,,
+C12	Agencer des medias (Tri),SF23: Sélectionner/ordonner.,Focus : Organisation.Méthodologie de classement pour gagner du temps au montage.,,,
+C13	Dégager qualités techniques/artistiques,SF24: Décrire qualités.,"Focus : Contrôle Rushes.Identification des problèmes techniques (point, drop) avant montage.",,,
+C13	Dégager qualités techniques/artistiques,SF25: Repérer défauts.,"Focus : Contrôle Rushes.Identification des problèmes techniques (point, drop) avant montage.",,,
+C14	Gérer ressources stockage,SF26: Solutions stockage fiables.,"Focus : Gestion Disques.Surveillance de l'espace disque, gestion des backups projet.",,,
+C15	Dégager structure générale,SF27: Effectuer pré-montage.,Focus : Bout-à-bout.Construction du squelette de la séquence (Ours).,,,
+C16	S’assurer de la faisabilité,"SF10, SF11 (Compatibilité).",Focus : Vérification.Vérifier si la machine peut lire les rushes natifs (ex: 4K RAW) ou s'il faut des proxys.,,,
+C17	Raccorder images et sons,SF28: Effectuer maquette élaborée.,"Focus : Montage.Le cœur du métier : rythme, raccord mouvement/regard, narration.",,,
+C20	Préparer étapes ultérieures,SF32: Faciliter étapes.,Focus : Round-tripping.Préparation des exports OMF/AAF pour le son et XML/EDL pour l'étalonnage.,,,
+C21	Analyse besoins sonores,SF33: Enrichir montage sonore.,Focus : Design Sonore.Recherche de musiques et d'effets sonores pertinents.,,,
+C22	Placer éléments sonores,SF34: Préparer post-prod son.,"Focus : Synchro.Synchronisation des sons seuls, organisation des pistes audio.",,,
+C23	Définir traitements compositing,SF35: Préparer éléments.,"Focus : Prépa VFX.Identification des plans nécessitant un trucage (floutage, incrustation).",,,
+C24	Générer images multicouches,SF36: Élaborer compositions.,"Focus : Compositing.Réalisation de trucages simples (titrage, Split screen, Chroma key) dans le logiciel de montage.",,,
+C25	Conformer un produit,SF37: Contrôler sources.,Focus : Conformation.Bascule du montage Offline vers Online (Haute Résolution).,,,
+C25	Conformer un produit,SF38: Adapter traitements.,Focus : Conformation.Bascule du montage Offline vers Online (Haute Résolution).,,,
+C26	Finaliser un produit,SF39: Respecter composante artistique.,"Focus : Finitions.Habillage graphique, générique, étalonnage primaire, vérification normes PAD.",,,
+C26	Finaliser un produit,SF40: Réaliser habillage.,"Focus : Finitions.Habillage graphique, générique, étalonnage primaire, vérification normes PAD.",,,
