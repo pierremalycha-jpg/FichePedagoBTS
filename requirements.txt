@@ -4,3 +4,4 @@ fpdf
 pypdf
 plotly
 openpyxl
+huggingface_hub
