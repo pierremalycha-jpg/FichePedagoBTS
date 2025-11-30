@@ -7,19 +7,31 @@ import os
 import io
 from pypdf import PdfWriter, PdfReader
 
-# --- 1. CONFIGURATION ET CHEMINS ---
-# On récupère le dossier parent (ApplicationPython) pour trouver les CSV et la DB
-current_dir = os.path.dirname(os.path.abspath(__file__))
-root_dir = os.path.dirname(current_dir) 
+# --- CHEMINS UNIVERSELS ---
+# 1. On trouve où est le fichier actuel (dans le dossier 'pages')
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
 
-DB_FILE_PATH = os.path.join(root_dir, "pedago.db")
+# 2. On remonte d'un cran pour trouver la racine du projet (là où sont les CSV)
+# dirname de ".../pages" donne la racine du projet
+ROOT_PATH = os.path.dirname(current_dir)
 
-# Définition des fichiers CSV avec leurs chemins complets
+# 3. On construit les chemins dynamiques
+DB_FILE_PATH = os.path.join(ROOT_PATH, "pedago.db")
+
 CSV_FILES = {
-    "TIEE": os.path.join(root_dir, "TIEE.csv"),
-    "IMAGE": os.path.join(root_dir, "Image.csv"),
-    "MONTAGE": os.path.join(root_dir, "montage.csv")
+    "TIEE": os.path.join(ROOT_PATH, "TIEE.csv"),
+    "IMAGE": os.path.join(ROOT_PATH, "Image.csv"),
+    "MONTAGE": os.path.join(ROOT_PATH, "montage.csv")
 }
+
+# Petite sécurité pour éviter les plantages silencieux
+if not os.path.exists(os.path.join(ROOT_PATH, "TIEE.csv")):
+    # Si on ne trouve pas le fichier, on tente de regarder dans le dossier courant (cas rare)
+    if os.path.exists("TIEE.csv"):
+        ROOT_PATH = "."
+        CSV_FILES = {k: k+".csv" for k in ["TIEE", "IMAGE", "MONTAGE"]}
+        DB_FILE_PATH = "pedago.db"
 
 # --- 2. FONCTIONS UTILITAIRES ---
 def clean_text(text):
