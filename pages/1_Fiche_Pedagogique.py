@@ -7,31 +7,20 @@ import os
 import io
 from pypdf import PdfWriter, PdfReader
 
-# --- CHEMINS UNIVERSELS ---
-# 1. On trouve où est le fichier actuel (dans le dossier 'pages')
+# --- 1. CONFIGURATION ET CHEMINS UNIVERSELS ---
+# Cette méthode trouve le dossier racine peu importe où on est (Cloud, Mac, PC)
 current_file_path = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file_path)
+ROOT_PATH = os.path.dirname(current_dir) # On remonte d'un cran pour trouver la racine
 
-# 2. On remonte d'un cran pour trouver la racine du projet (là où sont les CSV)
-# dirname de ".../pages" donne la racine du projet
-ROOT_PATH = os.path.dirname(current_dir)
-
-# 3. On construit les chemins dynamiques
 DB_FILE_PATH = os.path.join(ROOT_PATH, "pedago.db")
 
+# Noms théoriques des fichiers (Le code va chercher les vrais noms automatiquement)
 CSV_FILES = {
-    "TIEE": os.path.join(ROOT_PATH, "TIEE.csv"),
-    "IMAGE": os.path.join(ROOT_PATH, "Image.csv"),
-    "MONTAGE": os.path.join(ROOT_PATH, "montage.csv")
+    "TIEE": "TIEE.csv",
+    "IMAGE": "Image.csv",
+    "MONTAGE": "montage.csv"
 }
-
-# Petite sécurité pour éviter les plantages silencieux
-if not os.path.exists(os.path.join(ROOT_PATH, "TIEE.csv")):
-    # Si on ne trouve pas le fichier, on tente de regarder dans le dossier courant (cas rare)
-    if os.path.exists("TIEE.csv"):
-        ROOT_PATH = "."
-        CSV_FILES = {k: k+".csv" for k in ["TIEE", "IMAGE", "MONTAGE"]}
-        DB_FILE_PATH = "pedago.db"
 
 # --- 2. FONCTIONS UTILITAIRES ---
 def clean_text(text):
@@ -46,7 +35,6 @@ def clean_text(text):
     return text.encode('latin-1', 'replace').decode('latin-1')
 
 def create_annex_overlay():
-    """Crée le cadre rouge pour les annexes"""
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font('Arial', 'B', 14)
@@ -57,21 +45,37 @@ def create_annex_overlay():
     pdf.rect(5, 5, 200, 287)
     return pdf.output(dest='S').encode('latin-1')
 
-# --- 3. GESTION BDD ---
+# --- 3. GESTION BDD (VERSION BLINDÉE NOM DE FICHIERS) ---
 def init_db():
-    """Initialise la base de données à partir des 3 fichiers CSV"""
     conn = sqlite3.connect(DB_FILE_PATH)
     all_data = []
     
-    # On parcourt le dictionnaire des fichiers
-    for domaine, file_path in CSV_FILES.items():
-        if os.path.exists(file_path):
+    # On liste les fichiers présents sur le disque pour comparer (gestion majuscules/minuscules)
+    try:
+        files_on_disk = os.listdir(ROOT_PATH)
+    except FileNotFoundError:
+        st.error(f"Dossier introuvable : {ROOT_PATH}")
+        files_on_disk = []
+
+    for domaine, target_filename in CSV_FILES.items():
+        # On cherche le vrai chemin du fichier
+        real_file_path = None
+        for f in files_on_disk:
+            if f.lower() == target_filename.lower():
+                real_file_path = os.path.join(ROOT_PATH, f)
+                break
+        
+        if real_file_path and os.path.exists(real_file_path):
             try:
-                df = pd.read_csv(file_path, sep=None, engine='python', encoding='utf-8')
+                # Lecture
+                df = pd.read_csv(real_file_path, sep=None, engine='python', encoding='utf-8')
                 df.columns = df.columns.str.strip().str.lower()
+                
+                # Mapping colonnes
                 rename_map = {
                     'pré-requis': 'prerequis', 'pre-requis': 'prerequis',
-                    'matériel': 'materiel', 'lien': 'liens', 'liens matières': 'liens'
+                    'matériel': 'materiel', 'lien': 'liens', 'liens matières': 'liens',
+                    'categorie': 'base', 'domaine': 'base'
                 }
                 df.rename(columns=rename_map, inplace=True)
                 df['domaine'] = domaine
@@ -83,7 +87,9 @@ def init_db():
                 df = df[['domaine'] + required]
                 all_data.append(df)
             except Exception as e:
-                print(f"Erreur lecture {file_path}: {e}")
+                print(f"Erreur lecture {real_file_path}: {e}")
+        else:
+            print(f"⚠️ Fichier introuvable pour {domaine} (Cherché: {target_filename})")
     
     if all_data:
         final_df = pd.concat(all_data).fillna("")
@@ -92,7 +98,6 @@ def init_db():
     conn.close()
 
 def save_session_to_history(info, blocks):
-    """Enregistre les stats"""
     conn = sqlite3.connect(DB_FILE_PATH)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS historique (
@@ -110,19 +115,16 @@ def save_session_to_history(info, blocks):
     conn.close()
 
 def get_data_for_domain(selected_domain):
-    """C'est cette fonction qui posait problème. Elle est maintenant corrigée."""
-    init_db()
+    init_db() # On recharge pour être sûr
     conn = sqlite3.connect(DB_FILE_PATH)
     
-    # Fonction interne pour récupérer les options uniques
     def get_options(col):
         try:
             df = pd.read_sql(f"SELECT DISTINCT {col} FROM competences WHERE domaine = ? AND {col} != ''", conn, params=(selected_domain,))
             final_set = set()
-            if not df.empty:
-                for item in df[col].tolist():
-                    for p in item.replace(';', ',').split(','):
-                        if p.strip(): final_set.add(p.strip())
+            for item in df[col].tolist():
+                for p in item.replace(';', ',').split(','):
+                    if p.strip(): final_set.add(p.strip())
             return sorted(list(final_set))
         except: return []
 
@@ -130,22 +132,18 @@ def get_data_for_domain(selected_domain):
     opts_mat = get_options('materiel')
     opts_lie = get_options('liens')
 
-    # Récupération des compétences
     c = conn.cursor()
-    rows = []
     try:
         c.execute('SELECT label, competence, skill FROM competences WHERE domaine = ?', (selected_domain,))
         rows = c.fetchall()
-    except: 
-        rows = []
+    except: rows = []
     conn.close()
     
     data_abc = {}
     for label, comp, skill in rows:
         if label not in data_abc: data_abc[label] = {"official_name": comp, "skills": []}
         if skill not in data_abc[label]["skills"]: data_abc[label]["skills"].append(skill)
-    
-    # Le RETURN est bien aligné tout à gauche maintenant !
+            
     return data_abc, opts_pre, opts_mat, opts_lie
 
 # --- 4. GESTION ÉTAT ---
@@ -238,7 +236,6 @@ def create_pdf(info, blocks, content):
             pdf.check_space(40) 
             dom_prefix = f"[{block.get('domain', '?')}] " if block.get('domain') else ""
             act_label = block.get('label', '')
-            
             pdf.set_font('Arial', 'B', 11)
             pdf.set_fill_color(220, 220, 220)
             pdf.set_text_color(0, 50, 100)
@@ -247,18 +244,15 @@ def create_pdf(info, blocks, content):
             
             skills_cleaned = [clean_text(s) for s in block['skills']]
             skills_text = "\n".join([f"- {s}" for s in skills_cleaned])
-            
             y_comp = pdf.get_y()
             pdf.set_font('Arial', 'I', 9)
             pdf.set_xy(10, y_comp)
             pdf.multi_cell(60, 6, clean_text(block['competence']), border=1, align='L')
             h_left = pdf.get_y() - y_comp
-            
             pdf.set_font('Arial', '', 10)
             pdf.set_xy(70, y_comp)
             pdf.multi_cell(0, 6, skills_text, border=1, align='L')
             h_right = pdf.get_y() - y_comp
-            
             pdf.set_y(y_comp + max(h_left, h_right))
             pdf.ln(4) 
         pdf.ln(2)
@@ -352,10 +346,11 @@ with col_edit:
 
     st.subheader("2. Compétences & Savoir-faire")
     with st.container(border=True):
+        # CHOIX BASE DE DONNÉES
         list_domains = list(CSV_FILES.keys())
         selected_domain = st.radio("📚 Choisir la base de données :", list_domains, horizontal=True)
         
-        # APPEL DE LA FONCTION (QUI NE PLANTERA PLUS)
+        # Récupération Données
         DATA_SOURCE, OPTIONS_PRE, OPTIONS_MAT, OPTIONS_LIE = get_data_for_domain(selected_domain)
         
         labels = [""] + list(DATA_SOURCE.keys())
@@ -436,28 +431,21 @@ with col_preview:
         if not info_title:
             st.warning("Il faut un titre.")
         else:
-            # 1. Sauvegarde Stats
             save_session_to_history(current_info, st.session_state.blocks)
-            
-            # 2. Création Fiche
             pdf_bytes = create_pdf(current_info, st.session_state.blocks, st.session_state.content)
             final_pdf_bytes = pdf_bytes
             
-            # 3. Fusion Annexe
             if uploaded_annexe:
                 try:
                     merger = PdfWriter()
                     merger.append(io.BytesIO(pdf_bytes))
-                    
                     overlay_bytes = create_annex_overlay()
                     overlay_pdf = PdfReader(io.BytesIO(overlay_bytes))
                     overlay_page = overlay_pdf.pages[0]
-                    
                     annex_reader = PdfReader(uploaded_annexe)
                     for page in annex_reader.pages:
                         page.merge_page(overlay_page)
                         merger.add_page(page)
-                        
                     output_buffer = io.BytesIO()
                     merger.write(output_buffer)
                     final_pdf_bytes = output_buffer.getvalue()
